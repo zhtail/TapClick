@@ -5,8 +5,10 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Rect;
+import android.graphics.Region;
 import android.net.Uri;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.WindowManager;
 
 import com.lgh.advertising.going.BuildConfig;
@@ -139,23 +141,27 @@ public class MyUtils {
     }
 
     public static Rect getDbClickPosition() {
-        SharedPreferences sharedPreferences = mContext.getSharedPreferences(mContext.getPackageName(), Context.MODE_PRIVATE | Context.MODE_MULTI_PROCESS);
         DisplayMetrics displayMetrics = new DisplayMetrics();
         mContext.getSystemService(WindowManager.class).getDefaultDisplay().getRealMetrics(displayMetrics);
-        Rect rect = new Rect();
-        rect.left = sharedPreferences.getInt("dbClickPositionLeft", displayMetrics.widthPixels - 150);
-        rect.top = sharedPreferences.getInt("dbClickPositionTop", 0);
-        rect.right = sharedPreferences.getInt("dbClickPositionRight", displayMetrics.widthPixels);
-        rect.bottom = sharedPreferences.getInt("dbClickPositionBottom", 100);
+        SharedPreferences sharedPreferences = mContext.getSharedPreferences(mContext.getPackageName(), Context.MODE_PRIVATE | Context.MODE_MULTI_PROCESS);
+        float left = sharedPreferences.getFloat("dbClickLeftPercent", (displayMetrics.widthPixels - 150f) / displayMetrics.widthPixels);
+        float top = sharedPreferences.getFloat("dbClickTopPercent", 0);
+        float right = sharedPreferences.getFloat("dbClickRightPercent", 1);
+        float bottom = sharedPreferences.getFloat("dbClickBottomPercent", 100f / displayMetrics.heightPixels);
+        Log.i("LinGH", "left:" + left);
+        Rect rect = new Rect((int) (left * displayMetrics.widthPixels), (int) (top * displayMetrics.heightPixels), (int) (right * displayMetrics.widthPixels), (int) (bottom * displayMetrics.heightPixels));
+        Log.i("LinGH: ", "rect " + rect);
         return rect;
     }
 
     public static boolean setDbClickPosition(Rect rect) {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        mContext.getSystemService(WindowManager.class).getDefaultDisplay().getRealMetrics(displayMetrics);
         SharedPreferences sharedPreferences = mContext.getSharedPreferences(mContext.getPackageName(), Context.MODE_PRIVATE | Context.MODE_MULTI_PROCESS);
-        sharedPreferences.edit().putInt("dbClickPositionLeft", rect.left).apply();
-        sharedPreferences.edit().putInt("dbClickPositionTop", rect.top).apply();
-        sharedPreferences.edit().putInt("dbClickPositionRight", rect.right).apply();
-        sharedPreferences.edit().putInt("dbClickPositionBottom", rect.bottom).apply();
+        sharedPreferences.edit().putFloat("dbClickLeftPercent", (float) rect.left / displayMetrics.widthPixels).apply();
+        sharedPreferences.edit().putFloat("dbClickTopPercent", (float) rect.top / displayMetrics.heightPixels).apply();
+        sharedPreferences.edit().putFloat("dbClickRightPercent", (float) rect.right / displayMetrics.widthPixels).apply();
+        sharedPreferences.edit().putFloat("dbClickBottomPercent", (float) rect.bottom / displayMetrics.heightPixels).apply();
         return true;
     }
 
